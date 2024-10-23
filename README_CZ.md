@@ -1,0 +1,1 @@
+# ESPink-4.26" - univerzální a velmi úsporná deska s ESP32-S3 pro velký 4.26" 800x480 ePaper
