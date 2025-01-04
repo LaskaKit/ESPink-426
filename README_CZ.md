@@ -14,7 +14,7 @@ ESPink-4.26 má osazeny dva naše univerzální I2C uŠup konektory ke kterým m
 Kromě I2C uŠup konektoru máme osazený i SPI uŠup konektor.
 </br>
 Deska podporuje populární projekt Živý Obraz, který výrazně zjednodušuje použití ePaper displeje k zobrazení fotografií, (google, outlook, apple) kalendáře, kurzů, hodnot z meteostanic, předpovědi počasí a mnoho dalšího. Není nutné psát kód, stačí nahrát správný typ ePaper a desky skrze webové prostředí a dodržet postup popsaný v [dokumentaci](https://wiki.zivyobraz.eu/).</br>
-Program nahraješ [přes webové prostředí na této stránce](https://zivyobraz.eu/?page=instalace) a stačí zvolit desku <b>LaskaKit ESPink 2.x</b> a typ ePaperu <b>GDEY029F51H, GDEY029T71H, GDEY029T94 nebo GDEY0213B74</b> - podle toho, co sis objednal. </br>
+Program nahraješ [přes webové prostředí na této stránce](https://zivyobraz.eu/?page=instalace) a stačí zvolit desku <b>LaskaKit ESPink 3.x</b> a typ ePaperu <b>GDEQ0426T82</b>. </br>
 </br>
 Pokud si chceš napsat vlastní program, tak do toho :-)</br>
 Na našem github máš [schéma desky](https://github.com/LaskaKit/ESPink-426/tree/main/HW) a nezapomněli jsme ani na [vzorové kódy](https://github.com/LaskaKit/ESPink-426/tree/main/SW), které by ti značně měly usnadnit programování a práci s naším ESPink-4.26. </br>
