@@ -36,7 +36,7 @@ GxEPD2_BW<GxEPD2_426_GDEQ0426T82, GxEPD2_426_GDEQ0426T82::HEIGHT> display(GxEPD2
 
 
 // SHT40
-Adafruit_SHT4x sht4 = Adafruit_SHT4x();
+Adafruit_SHT4x sht4 = Adafruit_SHT4x(0x46);
 
 // ADC
 MAX17048 pwr_mgmt;
