@@ -1,4 +1,9 @@
-### Version 1.2
+### Version 1.3
+- Fuel Gauge replaced by ESP ADC
+- Epaper BUSY pin changed from IO36 to IO38
+- Epaper CS2 pin changed from IO35 to IO18
+- µŠup SPI MOSI pin changed from IO37 to IO3
+#### Version 1.2
 - LOD changed to RT9080
 - Changed pull-ups R18, R19, R20 back from VSENSOR to +3.3V
 - Buttons moved far away one from each other
