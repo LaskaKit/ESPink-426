@@ -24,7 +24,7 @@ RTC_DATA_ATTR int bootCount = 0;  // Variable for keeping number of wakeups
 //SS/CS       10
 #define DC    48 
 #define RST   45  
-#define BUSY  36 
+#define BUSY  38 
 #define POWER 47
 #define SDA   42
 #define SCL   2

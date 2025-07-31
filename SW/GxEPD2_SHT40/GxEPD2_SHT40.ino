@@ -3,20 +3,19 @@
  * Board:   LaskaKit ESPink-4.26   https://www.laskakit.cz/laskakit-espink-esp32-e-paper-pcb-antenna/
  *
  * Libraries:
- * MAX17048:  https://github.com/hideakitai/MAX17048
  * SHT40: https://github.com/adafruit/Adafruit_SHT4X
- * EPD library: https://github.com/ZinggJM/GxEPD2
+ * EPD library: https://github.com/ZinggJM/GxEPD2_4G
  * 
  * Email:podpora@laskakit.cz
  * Web:laskakit.cz
  */
  
-#include <WiFi.h>
-#include <GxEPD2_BW.h>
-#include "SPI.h"
+#define ENABLE_GxEPD2_GFX 1
+
+#include <GxEPD2_4G_4G.h>
+#include <GxEPD2_4G_BW.h>
 
 #include "Adafruit_SHT4x.h"
-#include "MAX17048.h"
 
 // Fonts
 #include "OpenSansSB_12px.h"
@@ -27,22 +26,20 @@
 //SS/CS       10
 #define DC    48 
 #define RST   45  
-#define BUSY  36 
+#define BUSY  38
 #define POWER 47
 #define SDA   42
 #define SCL   2
+#define BAT   9
 
-GxEPD2_BW<GxEPD2_426_GDEQ0426T82, GxEPD2_426_GDEQ0426T82::HEIGHT> display(GxEPD2_426_GDEQ0426T82(SS, DC, RST, BUSY)); // GDEQ0426T82 480x800, SSD1677 (P426010-MF1-A)
+GxEPD2_4G_4G < GxEPD2_426_GDEQ0426T82, GxEPD2_426_GDEQ0426T82::HEIGHT / 2 > display(GxEPD2_426_GDEQ0426T82(SS, DC, RST, BUSY)); // GDEQ0426T82 480x800, SSD1677 (P426010-MF1-A)
 
 
 // SHT40
-Adafruit_SHT4x sht4 = Adafruit_SHT4x(0x46);
+Adafruit_SHT4x sht4 = Adafruit_SHT4x();
 
 // ADC
-MAX17048 pwr_mgmt;
 float vBat = 0.0;
-int pBat = 0;
-float ppBat = 0.0;
 
 void setup() {
   Serial.begin(115200);
@@ -53,16 +50,11 @@ void setup() {
   delay(500);   
 
   Wire.begin (SDA, SCL);
-  pwr_mgmt.attatch(Wire); //připojí čip MAX17048 k desce
 
   // read the voltage
-  vBat = pwr_mgmt.voltage();
-  pBat = pwr_mgmt.percent();
-  ppBat = pwr_mgmt.accuratePercent();
-  Serial.println((String)"VCELL V   : "+vBat+"V"); //Vypíše napětí na baterii
-  Serial.println((String)"VCELL SOC : "+pBat+" \%"); //Vypíše přibližné nabití baterie
-  Serial.println((String)"VCELL SOC : "+ppBat+" \%"); //Vypíše přesné nabití baterie 
-
+  // read ADC and calculate the voltage
+  vBat = analogReadMilliVolts(BAT) * 1.769 / 1000; // the ratio of divider, R2=1.3M; R1=1M
+  Serial.println((String)"VCELL V   : "+ vBat + "V"); //Vypíše napětí na baterii
 
   /*----------- SHT40 -----------*/
   if (! sht4.begin()) 
@@ -81,41 +73,38 @@ void setup() {
   Serial.print("Temperature: "); Serial.print(temperature.temperature); Serial.println(" degrees C");
   Serial.print("Humidity: "); Serial.print(humidity.relative_humidity); Serial.println("% rH");
 
-  display.init();
+  display.init(115200);
 
   display.setRotation(3);
   display.fillScreen(GxEPD_WHITE);  // white background
   display.setTextColor(GxEPD_BLACK);  // black font
 
-  display.setCursor(/*x*/5, /*y*/50); // set cursor
-  display.setFont(&OpenSansSB_50px); // font
-  display.print(String(temperature.temperature, 1)); 
-  display.print("  ");
-  display.print(String(humidity.relative_humidity, 0)); 
+  display.setFullWindow();
+  display.firstPage();
+  do {
+    display.setCursor(/*x*/5, /*y*/50); // set cursor
+    display.setFont(&OpenSansSB_50px); // font
+    display.print(String(temperature.temperature, 1)); 
+    display.print("  ");
+    display.print(String(humidity.relative_humidity, 0)); 
 
-  display.setFont(&OpenSansSB_12px); // font
-  display.setCursor(/*x*/30, /*y*/70); // set cursor
-  display.println(" degC");
-  display.setCursor(/*x*/150, /*y*/70); // set cursor
-  display.println(" % Rh");
+    display.setFont(&OpenSansSB_12px); // font
+    display.setCursor(/*x*/30, /*y*/70); // set cursor
+    display.println(" degC");
+    display.setCursor(/*x*/150, /*y*/70); // set cursor
+    display.println(" % Rh");
 
-  display.setFont(&OpenSansSB_50px); // font
-  display.setCursor(/*x*/5, /*y*/150); // set cursor
-  display.print(String(vBat, 1) + "V"); 
-  display.setCursor(/*x*/5, /*y*/250); // set cursor
-  display.print(String(pBat) + "%"); 
-  display.setCursor(/*x*/5, /*y*/350); // set cursor
-  display.print(String(ppBat, 1) + "%"); 
+    display.setFont(&OpenSansSB_50px); // font
+    display.setCursor(/*x*/5, /*y*/150); // set cursor
+    display.print(String(vBat, 1)); 
 
-  display.setFont(&OpenSansSB_12px); // font
-  display.setCursor(/*x*/5, /*y*/170); // set cursor
-  display.print("Battery voltage, V");
-  display.setCursor(/*x*/5, /*y*/270); // set cursor
-  display.print("Battery percentage, %");
-  display.setCursor(/*x*/5, /*y*/370); // set cursor
-  display.print("precise Battery percentage, %");
 
-  display.display(false); // update 
+    display.setFont(&OpenSansSB_12px); // font
+    display.setCursor(/*x*/5, /*y*/170); // set cursor
+    display.print("Battery voltage, V");
+  }
+  while (display.nextPage());
+
   delay(100);
   digitalWrite(POWER, LOW); // disable power supply for ePaper
 
