@@ -3,28 +3,15 @@
 #include "Arduino.h"
 
 //board settings
-//#define ESPink_V2     //for version v2.6 and earlier
-#define ESPink_V3     //for version v3.0 and above
 
-#ifdef ESPink_V2
-  #define MISO  -1
-  #define MOSI  23
-  #define SCK   18
-  #define CS    5
-  #define DC    17 
-  #define RST   16  
-  #define BUSY  4 
-  #define POWER 2
-#else ESPink_V3
-  #define MISO  -1
-  #define MOSI  11
-  #define SCK   12
-  #define CS    10
-  #define DC    48 
-  #define RST   45  
-  #define BUSY  36 
-  #define POWER 47
-#endif
+#define MISO  -1
+#define MOSI  11
+#define SCK   12
+#define CS    10
+#define DC    48 
+#define RST   45  
+#define BUSY  38 
+#define POWER 47
 
 #define isEPD_W21_BUSY digitalRead(BUSY)
 #define EPD_W21_RST_0 digitalWrite(RST,LOW)
