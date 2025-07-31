@@ -54,7 +54,6 @@ void loop() {
       EPD_HW_Init_Fast(); //Fast refresh initialization.
       EPD_WhiteScreen_ALL_Fast(gImage_2); //To display one image using fast refresh.
       EPD_DeepSleep(); //Enter the sleep mode and please do not delete it, otherwise it will reduce the lifespan of the screen.
-      delay(2000); //Delay for 2s.
 
   #if 1 //Partial refresh demostration.
   //Partial refresh demo support displaying a clock at 5 locations with 00:00.  If you need to perform partial refresh more than 5 locations, please use the feature of using partial refresh at the full screen demo.
@@ -73,7 +72,6 @@ void loop() {
       EPD_HW_Init(); //Full screen refresh initialization.
       EPD_WhiteScreen_White(); //Clear screen function.
       EPD_DeepSleep(); //Enter the sleep mode and please do not delete it, otherwise it will reduce the lifespan of the screen.
-      delay(2000); //Delay for 2s.
   #endif  
   
   #if 0 //Demo of using partial refresh to update the full screen, to enable this feature, please change 0 to 1.
@@ -89,16 +87,17 @@ void loop() {
       EPD_HW_Init(); //Full screen refresh initialization.
       EPD_WhiteScreen_White(); //Clear screen function.
       EPD_DeepSleep(); //Enter the sleep mode and please do not delete it, otherwise it will reduce the lifespan of the screen.
-      delay(2000); //Delay for 2s.
   #endif
   
   
-#if 0 //Demonstration of full screen refresh with 180-degree rotation, to enable this feature, please change 0 to 1.
+#if 1 //Demonstration of full screen refresh with 180-degree rotation, to enable this feature, please change 0 to 1.
       /************Full display(2s)*******************/
       EPD_HW_Init_180(); //Full screen refresh initialization.
       EPD_WhiteScreen_ALL(gImage_1); //To Display one image using full screen refresh.
+      delay(2000); //Delay for 2s. 
+      EPD_HW_Init(); //Full screen refresh initialization.
+      EPD_WhiteScreen_White(); //Clear screen function.
       EPD_DeepSleep(); //Enter the sleep mode and please do not delete it, otherwise it will reduce the lifespan of the screen.
-      delay(2000); //Delay for 2s.
   #endif        
   
 #endif
