@@ -10,7 +10,7 @@
 #define CS    10
 #define DC    48 
 #define RST   45  
-#define BUSY  38 
+#define BUSY  36 
 #define POWER 47
 
 #define isEPD_W21_BUSY digitalRead(BUSY)
