@@ -1,4 +1,6 @@
-### Version 1.3
+### Version 1.4
+- Added one more capacitor 47uF for ESP
+#### Version 1.3
 - Fuel Gauge replaced by ESP ADC
 - Epaper BUSY pin changed from IO36 to IO38
 - Epaper CS2 pin changed from IO35 to IO18
