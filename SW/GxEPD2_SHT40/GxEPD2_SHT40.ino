@@ -3,7 +3,7 @@
  * Board:   LaskaKit ESPink-4.26   https://www.laskakit.cz/laskakit-espink-esp32-e-paper-pcb-antenna/
  *
  * Libraries:
- * SHT40: https://github.com/adafruit/Adafruit_SHT4X
+ * SHT40: https://github.com/Sensirion/arduino-i2c-sht4x
  * EPD library: https://github.com/ZinggJM/GxEPD2_4G
  * 
  * Email:podpora@laskakit.cz
@@ -14,8 +14,14 @@
 
 #include <GxEPD2_4G_4G.h>
 #include <GxEPD2_4G_BW.h>
+#include <SensirionI2cSht4x.h>
+#include <Wire.h>
 
-#include "Adafruit_SHT4x.h"
+// macro definitions
+#ifdef NO_ERROR
+#undef NO_ERROR
+#endif
+#define NO_ERROR 0
 
 // Fonts
 #include "OpenSansSB_12px.h"
@@ -35,42 +41,83 @@
 GxEPD2_4G_4G < GxEPD2_426_GDEQ0426T82, GxEPD2_426_GDEQ0426T82::HEIGHT / 2 > display(GxEPD2_426_GDEQ0426T82(SS, DC, RST, BUSY)); // GDEQ0426T82 480x800, SSD1677 (P426010-MF1-A)
 
 // SHT40
-Adafruit_SHT4x sht4 = Adafruit_SHT4x();
+SensirionI2cSht4x sensor;
+static char errorMessage[64];
+static int16_t error;
+
+uint8_t sht4x_addr_found = 0x00;
 
 // ADC
 float vBat = 0.0;
 
+static bool initSHT4xAutoAddr(float& aTemperature, float& aHumidity) {
+  const uint8_t addrs[] = { 0x44, 0x45, 0x46 };
+
+  for (uint8_t i = 0; i < sizeof(addrs); i++) {
+    uint8_t addr = addrs[i];
+
+    Serial.printf("Trying SHT4x at I2C address 0x%02X ...\n", addr);
+
+    sensor.begin(Wire, addr);
+
+    sensor.softReset();
+    delay(10);
+
+    uint32_t serialNumber = 0;
+    error = sensor.serialNumber(serialNumber);
+    if (error != NO_ERROR) {
+      Serial.print("  serialNumber() failed: ");
+      errorToString(error, errorMessage, sizeof errorMessage);
+      Serial.println(errorMessage);
+      continue;
+    }
+
+    delay(20);
+    error = sensor.measureLowestPrecision(aTemperature, aHumidity);
+    if (error != NO_ERROR) {
+      Serial.print("  measureLowestPrecision() failed: ");
+      errorToString(error, errorMessage, sizeof errorMessage);
+      Serial.println(errorMessage);
+      continue;
+    }
+
+    // success
+    sht4x_addr_found = addr;
+    Serial.printf("SHT4x found at 0x%02X, serialNumber: %lu\n", addr, (unsigned long)serialNumber);
+    Serial.print("aTemperature: "); Serial.print(aTemperature);
+    Serial.print("\t aHumidity: ");  Serial.println(aHumidity);
+    return true;
+  }
+
+  Serial.println("SHT4x not found on 0x44/0x45/0x46.");
+  return false;
+}
+
 void setup() {
   Serial.begin(115200);
+
   // turn on power to display
   pinMode(POWER, OUTPUT);
   digitalWrite(POWER, HIGH);   // turn the Display on (HIGH is the voltage level)
   Serial.println("Display power ON");
   delay(500);   
 
-  Wire.begin (SDA, SCL);
+  Wire.begin(SDA, SCL);
 
   // read the voltage
-  // read ADC and calculate the voltage
   vBat = analogReadMilliVolts(BAT) * 1.769 / 1000; // the ratio of divider, R2=1.3M; R1=1M
-  Serial.println((String)"VCELL V   : "+ vBat + "V"); //Vypíše napětí na baterii
+  Serial.println((String)"VCELL V   : "+ vBat + "V");
 
-  /*----------- SHT40 -----------*/
-  if (! sht4.begin()) 
-  {
-    Serial.println("SHT4x not found");
-    Serial.println("Check connection");
-    while (1) delay(1);
+  /*----------- SHT40 / SHT4x -----------*/
+  float aTemperature = NAN;
+  float aHumidity = NAN;
+
+  bool sht_ok = initSHT4xAutoAddr(aTemperature, aHumidity);
+  if (!sht_ok) {
+    // fallback values to show something on display
+    aTemperature = NAN;
+    aHumidity = NAN;
   }
-
-  sht4.setPrecision(SHT4X_HIGH_PRECISION); // the higest resolution
-  sht4.setHeater(SHT4X_NO_HEATER); // no heater
-
-  sensors_event_t humidity, temperature; // variable for humidity and temperature
-  sht4.getEvent(&humidity, &temperature); // read value
-
-  Serial.print("Temperature: "); Serial.print(temperature.temperature); Serial.println(" degrees C");
-  Serial.print("Humidity: "); Serial.print(humidity.relative_humidity); Serial.println("% rH");
 
   display.init(115200);
 
@@ -81,25 +128,38 @@ void setup() {
   display.setFullWindow();
   display.firstPage();
   do {
-    display.setCursor(/*x*/5, /*y*/50); // set cursor
-    display.setFont(&OpenSansSB_50px); // font
-    display.print(String(temperature.temperature, 1)); 
-    display.print("  ");
-    display.print(String(humidity.relative_humidity, 0)); 
+    display.setCursor(5, 50);
+    display.setFont(&OpenSansSB_50px);
 
-    display.setFont(&OpenSansSB_12px); // font
-    display.setCursor(/*x*/30, /*y*/70); // set cursor
+    if (sht_ok) {
+      display.print(String(aTemperature, 1)); 
+      display.print("  ");
+      display.print(String(aHumidity, 0)); 
+    } else {
+      display.print("--.-  --");
+    }
+
+    display.setFont(&OpenSansSB_12px);
+    display.setCursor(30, 70);
     display.println(" degC");
-    display.setCursor(/*x*/150, /*y*/70); // set cursor
+    display.setCursor(150, 70);
     display.println(" % Rh");
 
-    display.setFont(&OpenSansSB_50px); // font
-    display.setCursor(/*x*/5, /*y*/150); // set cursor
+    display.setFont(&OpenSansSB_12px);
+    display.setCursor(5, 90);
+    if (sht_ok) {
+      display.print("SHT4x I2C: 0x");
+      display.print(String(sht4x_addr_found, HEX));
+    } else {
+      display.print("SHT4x I2C: not found");
+    }
+
+    display.setFont(&OpenSansSB_50px);
+    display.setCursor(5, 150);
     display.print(String(vBat, 1)); 
 
-
-    display.setFont(&OpenSansSB_12px); // font
-    display.setCursor(/*x*/5, /*y*/170); // set cursor
+    display.setFont(&OpenSansSB_12px);
+    display.setCursor(5, 170);
     display.print("Battery voltage, V");
   }
   while (display.nextPage());
@@ -114,5 +174,4 @@ void setup() {
 }
 
 void loop() {
-
 }
